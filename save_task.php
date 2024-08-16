@@ -1,22 +1,24 @@
 <?php
-if (isset($_POST['save_task'])) {
-    $data = [
-        'title' => $_POST['title'],
-        'description' => $_POST['description']
-    ];
+session_start(); // Asegúrate de que la sesión esté iniciada
 
-    $ch = curl_init('http://localhost/php_crud/api.php'); // Cambia la URL si es necesario
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+// Verifica si los datos POST están presentes
+if (isset($_POST['title']) && isset($_POST['description'])) {
+    $title = $_POST['title'];
+    $description = $_POST['description'];
 
-    $response = curl_exec($ch);
-    curl_close($ch);
+    // Verifica si la conexión a la base de datos está correctamente configurada
+    include_once("controlador/task_service.php");
+    $taskService = new TaskService();
 
-    $_SESSION['message'] = 'Task Saved Successfully';
-    $_SESSION['message_type'] = 'success';
+    // Llama al método para guardar la tarea
+    $result = $taskService->saveTask($title, $description);
 
-    header("Location: index.php");
+    if ($result) {
+        echo json_encode(["message" => "Task Saved Successfully"]);
+    } else {
+        echo json_encode(["error" => "Failed to save task"]);
+    }
+} else {
+    echo json_encode(["error" => "Invalid input"]);
 }
 ?>
